@@ -2,6 +2,7 @@ from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, redirect
 from user.models import User_Register
 # Create your views here.
+import hashlib
 
 
 def register(request):
@@ -9,7 +10,8 @@ def register(request):
         return render(request, 'register.html')
     else:
         username = request.POST.get('username')
-        password = request.POST.get('password')
+        password = encryption(request.POST.get('password'))
+
         print(username, password)
         # 把信息存到数据库
         user = User_Register.objects.create(username=username, password=password)
@@ -47,3 +49,15 @@ def login(request):
                 # 响应对象里面设置cookie发送给客户端浏览器
                 response.set_cookie('username', username, 14 * 24 * 3600)
                 return response
+
+
+def encryption(password):
+    """对密码进行加密"""
+    md5_pwd = hashlib.md5()
+    md5_pwd.update(password.encode('utf-8'))
+    new_pwd = md5_pwd.hexdigest()
+    salt = 'Nixxxxxxxx'
+    md5_pwd.update(salt.encode('utf-8'))
+    new_salt = md5_pwd.hexdigest()
+
+    return new_salt + new_pwd
